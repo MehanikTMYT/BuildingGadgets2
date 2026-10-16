@@ -1,5 +1,6 @@
 package com.direwolf20.buildinggadgets2.integration;
-/*
+
+// Fleet (AE Compendium, 2026-10-10): re-enabled against AE2 26.1 (the AE2 API used here is unchanged).
 import appeng.api.config.Actionable;
 import appeng.api.features.GridLinkables;
 import appeng.api.features.IGridLinkableHandler;
@@ -52,7 +53,7 @@ public class AE2Methods {
     }
 
     public static void checkAE2ForItems(GlobalPos boundInventory, Player player, List<ItemStack> testArray, boolean simulate) {
-        Level level = getLevel(player.getServer(), boundInventory);
+        Level level = getLevel(player.level().getServer(), boundInventory);
         if (level == null) return;
         BlockEntity blockEntity = level.getBlockEntity(boundInventory.pos());
         if (blockEntity == null) return;
@@ -75,7 +76,7 @@ public class AE2Methods {
     }
 
     public static void checkAE2ForFluids(GlobalPos boundInventory, Player player, FluidStack fluidStack, boolean simulate) {
-        Level level = getLevel(player.getServer(), boundInventory);
+        Level level = getLevel(player.level().getServer(), boundInventory);
         if (level == null) return;
         BlockEntity blockEntity = level.getBlockEntity(boundInventory.pos());
         if (blockEntity == null) return;
@@ -95,7 +96,7 @@ public class AE2Methods {
     }
 
     public static void insertIntoAE2(Player player, GlobalPos boundInventory, ItemStack tempReturnedItem) {
-        Level level = getLevel(player.getServer(), boundInventory);
+        Level level = getLevel(player.level().getServer(), boundInventory);
         if (level == null) return;
         BlockEntity blockEntity = level.getBlockEntity(boundInventory.pos());
         if (blockEntity == null) return;
@@ -110,7 +111,7 @@ public class AE2Methods {
     }
 
     public static void insertFluidIntoAE2(Player player, GlobalPos boundInventory, FluidStack returnedFluid) {
-        Level level = getLevel(player.getServer(), boundInventory);
+        Level level = getLevel(player.level().getServer(), boundInventory);
         if (level == null) return;
         BlockEntity blockEntity = level.getBlockEntity(boundInventory.pos());
         if (blockEntity == null) return;
@@ -127,4 +128,3 @@ public class AE2Methods {
         }
     }
 }
-*/
