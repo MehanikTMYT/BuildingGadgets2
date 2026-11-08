@@ -16,7 +16,6 @@ repositories {
         url 'https://maven.blamejared.com'
         content {
             includeGroup "vazkii.patchouli"
-            includeGroup "mezz.jei"
         }
     }
 
@@ -140,9 +139,9 @@ dependencies {
 
     // Example mod dependency with JEI
     // The JEI API is declared for compile time use, while the full JEI artifact is used at runtime
-    compileOnly "mezz.jei:jei-${jei_mc_version}-common-api:${jei_version}"
-    compileOnly "mezz.jei:jei-${jei_mc_version}-neoforge-api:${jei_version}"
-    runtimeOnly "mezz.jei:jei-${jei_mc_version}-neoforge:${jei_version}"
+// синк/порт 26.1.2: JEI-зависимость удалена — политика EMI-only
+// синк/порт 26.1.2: JEI-зависимость удалена — политика EMI-only
+// синк/порт 26.1.2: JEI-зависимость удалена — политика EMI-only
 
     //Patchouli
     compileOnly "vazkii.patchouli:Patchouli:${patchouli_version}:api"
