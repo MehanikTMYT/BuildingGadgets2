@@ -6,8 +6,7 @@ import com.direwolf20.buildinggadgets2.common.items.BaseGadget;
 import com.direwolf20.buildinggadgets2.common.items.GadgetBuilding;
 import com.direwolf20.buildinggadgets2.common.worlddata.BG2Data;
 // TODO(port, caps-rework): re-enable AE2 imports when Transfer API port is done
-import com.direwolf20.buildinggadgets2.integration.AE2Integration;
-import com.direwolf20.buildinggadgets2.integration.CuriosIntegration;
+import com.direwolf20.buildinggadgets2.integration.AE2Integration;import com.direwolf20.buildinggadgets2.integration.CuriosIntegration;
 import com.direwolf20.buildinggadgets2.integration.CuriosMethods;
 import com.direwolf20.buildinggadgets2.util.datatypes.StatePos;
 import com.direwolf20.buildinggadgets2.util.datatypes.TagPos;
@@ -45,149 +44,6 @@ import net.neoforged.neoforge.transfer.transaction.Transaction;
 import java.util.*;
 
 import static com.direwolf20.buildinggadgets2.integration.AE2Methods.*;
-
-public class BuildingUtils {
-
-    public static Level getLevel(MinecraftServer server, GlobalPos globalPos) {
-        if (server == null)
-            return null;//level = Minecraft.getInstance().level;
-        else
-            return server.getLevel(globalPos.dimension());
-    }
-
-    public static ResourceHandler<ItemResource> getHandlerFromBound(Player player, GlobalPos boundInventory, Direction direction) {
-        Level level = getLevel(player.level().getServer(), boundInventory);
-        if (level == null) return null;
-
-        BlockEntity blockEntity = level.getBlockEntity(boundInventory.pos());
-        if (blockEntity == null) return null;
-
-        return level.getCapability(Capabilities.Item.BLOCK, boundInventory.pos(), direction);
-    }
-
-    /**
-     * Drain {@code fluidStack.getAmount()} units of {@code fluidStack}'s fluid from the given handler, if the full amount is available.
-     * Shrinks {@code fluidStack} in-place on success. Returns whether the drain happened (or would happen, when simulating).
-     */
-    public static boolean drainFluidFromHandler(ResourceHandler<FluidResource> handler, FluidStack fluidStack, boolean simulate) {
-        if (fluidStack.isEmpty()) return false;
-        FluidResource resource = FluidResource.of(fluidStack);
-        int needed = fluidStack.getAmount();
-        try (Transaction tx = Transaction.openRoot()) {
-            int extracted = handler.extract(resource, needed, tx);
-            if (extracted == needed) {
-                if (!simulate) tx.commit();
-                fluidStack.shrink(extracted);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Insert {@code fluidStack.getAmount()} units of {@code fluidStack}'s fluid into the given handler, if the full amount fits.
-     * Shrinks {@code fluidStack} in-place on success. Returns whether the insert happened (or would happen, when simulating).
-     */
-    public static boolean insertFluidIntoHandler(ResourceHandler<FluidResource> handler, FluidStack fluidStack, boolean simulate) {
-        if (fluidStack.isEmpty()) return false;
-        FluidResource resource = FluidResource.of(fluidStack);
-        int amount = fluidStack.getAmount();
-        try (Transaction tx = Transaction.openRoot()) {
-            int inserted = ResourceHandlerUtil.insertStacking(handler, resource, amount, tx);
-            if (inserted == amount) {
-                if (!simulate) tx.commit();
-                fluidStack.shrink(inserted);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    // TODO: Dire learn about avoiding the non-DRY hell. (Dry = Don't Repeat Yourself)
-    public static void checkItemForFluids(ItemAccess itemAccess, FluidStack fluidStack, boolean simulate) {
-        if (fluidStack.isEmpty()) return;
-        ResourceHandler<ItemResource> itemHandlerCap = itemAccess.getCapability(Capabilities.Item.ITEM);
-        if (itemHandlerCap != null) {
-            checkItemHandlerForFluids(itemHandlerCap, fluidStack, simulate);
-            if (fluidStack.isEmpty()) return; // bag-in-item handled it
-        }
-
-        ResourceHandler<FluidResource> fluidHandlerCap = itemAccess.getCapability(Capabilities.Fluid.ITEM);
-        if (fluidHandlerCap != null) {
-            drainFluidFromHandler(fluidHandlerCap, fluidStack, simulate);
-        }
-    }
-
-    public static void insertFluidIntoItem(ItemAccess itemAccess, FluidStack fluidStack, boolean simulate) {
-        if (fluidStack.isEmpty()) return;
-        ResourceHandler<ItemResource> itemHandlerCap = itemAccess.getCapability(Capabilities.Item.ITEM);
-        if (itemHandlerCap != null) {
-            insertFluidIntoItemHandler(itemHandlerCap, fluidStack, simulate);
-            if (fluidStack.isEmpty()) return; // bag-in-item handled it
-        }
-
-        ResourceHandler<FluidResource> fluidHandlerCap = itemAccess.getCapability(Capabilities.Fluid.ITEM);
-        if (fluidHandlerCap != null) {
-            insertFluidIntoHandler(fluidHandlerCap, fluidStack, simulate);
-        }
-    }
-
-    public static void checkItemHandlerForFluids(ResourceHandler<ItemResource> handler, FluidStack fluidStack, boolean simulate) {
-        int size = handler.size();
-        for (int j = 0; j < size; j++) {
-            if (handler.getResource(j).isEmpty()) continue;
-            ItemAccess slotAccess = ItemAccess.forHandlerIndex(handler, j);
-            checkItemForFluids(slotAccess, fluidStack, simulate);
-            if (fluidStack.isEmpty()) return;
-        }
-    }
-
-    public static void insertFluidIntoItemHandler(ResourceHandler<ItemResource> handler, FluidStack fluidStack, boolean simulate) {
-        int size = handler.size();
-        for (int j = 0; j < size; j++) {
-            if (handler.getResource(j).isEmpty()) continue;
-            ItemAccess slotAccess = ItemAccess.forHandlerIndex(handler, j);
-            insertFluidIntoItem(slotAccess, fluidStack, simulate);
-            if (fluidStack.isEmpty()) return;
-        }
-    }
-
-    public static void checkInventoryForFluids(Player player, Inventory inventory, FluidStack fluidStack, boolean simulate) {
-        // Capability lookup pattern: slotStack.getCapability(cap, ItemAccess.forStack(slotStack)).
-        // This preserves both:
-        //   1. ItemStack identity — ItemStack.getCapability(cap, ctx) passes `self()` (the live
-        //      slotStack) to the provider factory, so mods that cache their handler by
-        //      ItemStack identity (e.g. Sophisticated Backpacks' StorageWrapperRepository)
-        //      hit the same cache entry the open menu is bound to.
-        //   2. A non-null ItemAccess context — required by providers that use NeoForge's
-        //      ItemAccessItemHandler / ItemAccessEnergyHandler and dereference the context.
-        // Going through ItemAccess.forStack(slotStack).getCapability(cap) instead loses #1
-        // because the default ItemAccess.getCapability passes `getResource().toStack()` — a
-        // fresh ItemStack instance — to the provider, producing a cache miss in mods like SB.
-        for (int j = 0; j < inventory.getContainerSize(); j++) {
-            ItemStack itemInSlot = inventory.getItem(j);
-            if (itemInSlot.isEmpty()) continue;
-            ResourceHandler<ItemResource> nestedHandler = itemInSlot.getCapability(Capabilities.Item.ITEM, ItemAccess.forStack(itemInSlot));
-            if (nestedHandler != null) {
-                checkItemHandlerForFluids(nestedHandler, fluidStack, simulate);
-                if (fluidStack.isEmpty()) return;
-            }
-            ResourceHandler<FluidResource> fluidHandlerCap = itemInSlot.getCapability(Capabilities.Fluid.ITEM, ItemAccess.forStack(itemInSlot));
-            if (fluidHandlerCap != null) {
-                drainFluidFromHandler(fluidHandlerCap, fluidStack, simulate);
-                if (fluidStack.isEmpty()) return;
-            }
-        }
-    }
-
-    public static boolean removeFluidStacksFromInventory(Player player, FluidStack fluidStack, boolean simulate, GlobalPos boundInventory, Direction direction) {
-        if (fluidStack.isEmpty()) return false;
-        //Check Bound Inventory First
-        if (boundInventory != null) {
-            if (AE2Integration.isLoaded()) { //Check if we are bound to an AE Device
-                checkAE2ForFluids(boundInventory, player, fluidStack, simulate);
-                if (fluidStack.isEmpty()) return true;
-            }
             ResourceHandler<ItemResource> boundHandler = getHandlerFromBound(player, boundInventory, direction);
             if (boundHandler != null) {
                 checkItemHandlerForFluids(boundHandler, fluidStack, simulate);
@@ -266,8 +122,7 @@ public class BuildingUtils {
             if (AE2Integration.isLoaded()) { //Check if we are bound to an AE Device
                 checkAE2ForItems(boundInventory, player, testArray, simulate);
                 if (testArray.isEmpty()) return true;
-            }
-            ResourceHandler<ItemResource> boundHandler = getHandlerFromBound(player, boundInventory, direction);
+            }            ResourceHandler<ItemResource> boundHandler = getHandlerFromBound(player, boundInventory, direction);
             if (boundHandler != null) {
                 checkHandlerForItems(boundHandler, testArray, simulate);
             }
@@ -321,8 +176,7 @@ public class BuildingUtils {
             if (AE2Integration.isLoaded()) { //Check if we are bound to an AE Device
                 insertFluidIntoAE2(player, boundInventory, returnedFluid);
                 if (returnedFluid.isEmpty()) return;
-            }
-            ResourceHandler<ItemResource> boundHandler = getHandlerFromBound(player, boundInventory, direction);
+            }            ResourceHandler<ItemResource> boundHandler = getHandlerFromBound(player, boundInventory, direction);
             if (boundHandler != null) {
                 insertFluidIntoItemHandler(boundHandler, returnedFluid, false);
             }
@@ -359,8 +213,7 @@ public class BuildingUtils {
             if (AE2Integration.isLoaded()) { //Check if we are bound to an AE Device
                 insertIntoAE2(player, boundInventory, tempReturnedItem);
                 if (tempReturnedItem.isEmpty()) return;
-            }
-            ResourceHandler<ItemResource> boundHandler = getHandlerFromBound(player, boundInventory, direction);
+            }            ResourceHandler<ItemResource> boundHandler = getHandlerFromBound(player, boundInventory, direction);
             if (boundHandler != null) {
                 int inserted = ResourceHandlerUtil.insertStacking(boundHandler, ItemResource.of(tempReturnedItem), tempReturnedItem.getCount(), null);
                 tempReturnedItem.shrink(inserted);
@@ -453,8 +306,8 @@ public class BuildingUtils {
             if (gadget.getItem() instanceof GadgetBuilding && needItems && !pos.state.canSurvive(level, blockPos.offset(lookingAt)))
                 continue; //Don't do this validation for copy/paste
             if (pos.state.getFluidState().isEmpty()) { //Check for items
-                List<ItemStack> neededItems = GadgetUtils.getDropsForBlockState((ServerLevel) level, blockPos.offset(lookingAt), pos.state, player);
                 if (!player.isCreative() && needItems) { //Check if player has needed items before using energy -- a real check happens again in ServerTicks
+                    List<ItemStack> neededItems = GadgetUtils.getDropsForBlockState((ServerLevel) level, blockPos.offset(lookingAt), pos.state, player);
                     if (!removeStacksFromInventory(player, neededItems, true, boundPos, direction))
                         continue; //Continue to the next position
                 }
@@ -502,8 +355,8 @@ public class BuildingUtils {
             if (gadget.getItem() instanceof GadgetBuilding && needItems && !pos.state.canSurvive(level, blockPos.offset(lookingAt)))
                 continue;  //Don't do this validation for copy/paste
             if (pos.state.getFluidState().isEmpty()) { //Check for items
-                List<ItemStack> neededItems = GadgetUtils.getDropsForBlockState((ServerLevel) level, blockPos.offset(lookingAt), pos.state, player);
                 if (!player.isCreative() && needItems && !pos.state.isAir()) { //Check if player has needed items before using energy -- a real check happens again in ServerTicks
+                    List<ItemStack> neededItems = GadgetUtils.getDropsForBlockState((ServerLevel) level, blockPos.offset(lookingAt), pos.state, player);
                     if (!removeStacksFromInventory(player, neededItems, true, boundPos, direction))
                         continue; //Continue to the next position
                 }

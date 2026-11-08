@@ -4,8 +4,7 @@ import com.direwolf20.buildinggadgets2.BuildingGadgets2;
 import com.direwolf20.buildinggadgets2.common.events.ServerTickHandler;
 // TODO(port, caps-rework): re-enable AE2 imports when Transfer API port is done
 import com.direwolf20.buildinggadgets2.integration.AE2Integration;
-import com.direwolf20.buildinggadgets2.integration.AE2Methods;
-import net.minecraft.core.registries.Registries;
+import com.direwolf20.buildinggadgets2.integration.AE2Methods;import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;

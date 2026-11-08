@@ -1,7 +1,6 @@
 package com.direwolf20.buildinggadgets2.integration;
 
-// Fleet (AE Compendium, 2026-10-10): re-enabled against AE2 26.1 (the AE2 API used here is unchanged).
-import appeng.api.config.Actionable;
+// Fleet (AE Compendium, 2026-10-10): re-enabled against AE2 26.1 (the AE2 API used here is unchanged).import appeng.api.config.Actionable;
 import appeng.api.features.GridLinkables;
 import appeng.api.features.IGridLinkableHandler;
 import appeng.api.implementations.blockentities.IWirelessAccessPoint;
