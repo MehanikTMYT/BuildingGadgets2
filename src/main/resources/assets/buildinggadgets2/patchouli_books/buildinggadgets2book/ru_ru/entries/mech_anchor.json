@@ -1,0 +1,21 @@
+{
+  "name": "Якорь",
+  "sortnum": 1,
+  "category": "buildinggadgets2:mechanics",
+  "icon": "buildinggadgets2:textures/book/icons/anchor.png",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "Якорь закрепляет выбранный блок, позволяя свободно перемещаться и осматриваться. Его можно установить горячей клавишей или через меню настроек. $(br2)Когда якорь установлен, нажмите ПКМ в любой момент, чтобы построить закреплённую постройку.$(br2)Примечание: изменение дальности может вступить в силу лишь после снятия и повторной установки якоря."
+    },
+    {
+      "type": "patchouli:image",
+      "title": "Якорь",
+      "images": [
+        "buildinggadgets2:textures/book/images/anchor1.png"
+      ],
+      "border": true,
+      "text": "Закрепите предпросмотр!"
+    }
+  ]
+}
