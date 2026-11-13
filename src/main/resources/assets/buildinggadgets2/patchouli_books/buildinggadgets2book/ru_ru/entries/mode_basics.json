@@ -1,0 +1,34 @@
+{
+  "name": "Основы",
+  "sortnum": 0,
+  "category": "buildinggadgets2:modes",
+  "icon": "buildinggadgets2:template",
+  "pages": [
+    {
+      "type": "patchouli:text",
+      "text": "У строительного гаджета и гаджета замены есть настройка «Дальность», задающая размер затрагиваемой области. В разных режимах она действует немного по-разному.$(br2)Например, в режиме «Горизонтальный ряд» дальность 3 означает всего 3 блока: по одному с каждой стороны выбранного блока. При чётном значении применяется округление."
+    },
+    {
+      "type": "patchouli:image",
+      "title": "Дальность 3",
+      "images": [
+        "buildinggadgets2:textures/book/images/horzrow4.png"
+      ],
+      "border": true,
+      "text": "Дальность: 3"
+    },
+    {
+      "type": "patchouli:text",
+      "text": "Для стен дальность 3 означает стену 3×3. Чётные значения немного меняют её высоту. $(br2)Экспериментируйте с предпросмотром, чтобы получить нужный результат!"
+    },
+    {
+      "type": "patchouli:image",
+      "title": "Дальность 3",
+      "images": [
+        "buildinggadgets2:textures/book/images/vertwall1.png"
+      ],
+      "border": true,
+      "text": "Дальность: 3"
+    }
+  ]
+}
